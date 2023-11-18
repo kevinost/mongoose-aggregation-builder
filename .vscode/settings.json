@@ -1,0 +1,10 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "files.eol": "\n",
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "typescript.preferences.importModuleSpecifier": "project-relative",
+  "javascript.preferences.importModuleSpecifier": "project-relative",
+  "cSpell.words": ["subline"],
+  "typescript.tsserver.log": "verbose"
+}

@@ -53,29 +53,29 @@ import { createDB, Schema, mongoose } from 'bridge-mongo';
 
 // Defining a User Schema
 const userSchema = new Schema({
-  name: { type: String, required: true },
-  email: String,
-  age: { type: Number, default: 18 },
-  job: { type: String, enum: ['developer', 'designer'] },
-  settings: {
-    isActive: Boolean,
-  },
+    name: { type: String, required: true },
+    email: String,
+    age: { type: Number, default: 18 },
+    job: { type: String, enum: ['developer', 'designer'] },
+    settings: {
+        isActive: Boolean,
+    },
 });
 
 // Defining a Post Schema
 const postSchema = new Schema(
-  {
-    text: { type: String, required: true },
-    userId: { type: mongoose.Types.ObjectId, req: true },
-    likes: Number,
-  },
-  { timestamps: true },
+    {
+        text: { type: String, required: true },
+        userId: { type: mongoose.Types.ObjectId, req: true },
+        likes: Number,
+    },
+    { timestamps: true },
 );
 
 // The keys correspond to the model Name
 const DB = createDB({
-  User: userSchema,
-  Post: postSchema,
+    User: userSchema,
+    Post: postSchema,
 });
 ```
 
@@ -89,18 +89,17 @@ import { mongoose } from 'bridge-mongo';
 const launch = async () => {
     await mongoose.connect('Your MongoDB URL here');
 
-    console.log('Connected!')
-}
+    console.log('Connected!');
+};
 
 launch();
 ```
-
 
 ### Start enjoying type safety
 
 You can enjoy the benefits of **total type safety** and guidance through TypeScript. The fully typed query results and error handling provided by bridge-mongo make it easy to write correct, efficient queries with confidence.
 
- Read the documentation to get started or get a look to the examples below.
+Read the documentation to get started or get a look to the examples below.
 
 **Some Queries examples:**
 
@@ -108,51 +107,48 @@ You can enjoy the benefits of **total type safety** and guidance through TypeScr
 import { isError } from 'bridge-mongo';
 
 async () => {
-  const user = await DB.user.create({ name: 'Nab' });
+    const user = await DB.user.create({ name: 'Nab' });
 
-  const post = await DB.post.findOne({ userId: user._id }, {text: 1});
+    const post = await DB.post.findOne({ userId: user._id }, { text: 1 });
 
-  if (!isError(post)) console.log(post)
+    if (!isError(post)) console.log(post);
 
+    const posts = await DB.post.find({ likes: { $gt: 10 } });
 
-  const posts = await DB.post.find({ likes: { $gt: 10 }});
-
-  const res = await DB.user.findByIdAndUpdate(user._id, { name: 'Neo' }, { projection: { name: 1 } })
-}
+    const res = await DB.user.findByIdAndUpdate(user._id, { name: 'Neo' }, { projection: { name: 1 } });
+};
 ```
 
 **Some Aggregate examples:**
 
 ```ts twoslash title='index.ts'
 async () => {
-  
-  // Fetching all users that have created post with their posts
-  const blogers = await DB.user
-    .aggregate()
-    .project({ name: 1 })
-    .lookup({ from: 'posts', localField: '_id', foreignField: 'userId' })
-    .match({ 'posts.0': { $exists: true } })
-    .exec();
-
-  // Fetching all posts from the last 24 hours with their author only if he's >= 21 years old
-
-  const yesterday = new Date(new Date().getTime() - 24 * 60 * 60 * 1000);
-
-  const posts = await DB.post
-    .aggregate()
-    .project({ text: 1, createdAt: 1, userId: 1 })
-    .match({ createdAt: { $gt: yesterday } })
-    .lookup({ from: 'users', let: { userId: '$userId' }, as: 'user' }, (user, { userId }) =>
-      user
-        .match({ $expr: { $eq: ['$_id', userId] }, age: { $gte: 21 } })
+    // Fetching all users that have created post with their posts
+    const blogers = await DB.user
+        .aggregate()
         .project({ name: 1 })
-        .limit(1),
-    )
-    .unwind('$user')
-    .unset('userId')
-    .exec();
-}
-```
+        .lookup({ from: 'posts', localField: '_id', foreignField: 'userId' })
+        .match({ 'posts.0': { $exists: true } })
+        .exec();
 
+    // Fetching all posts from the last 24 hours with their author only if he's >= 21 years old
+
+    const yesterday = new Date(new Date().getTime() - 24 * 60 * 60 * 1000);
+
+    const posts = await DB.post
+        .aggregate()
+        .project({ text: 1, createdAt: 1, userId: 1 })
+        .match({ createdAt: { $gt: yesterday } })
+        .lookup({ from: 'users', let: { userId: '$userId' }, as: 'user' }, (user, { userId }) =>
+            user
+                .match({ $expr: { $eq: ['$_id', userId] }, age: { $gte: 21 } })
+                .project({ name: 1 })
+                .limit(1),
+        )
+        .unwind('$user')
+        .unset('userId')
+        .exec();
+};
+```
 
 Bridge-mongo is constantly evolving and adding new features to provide a fully typed, robust, and easy-to-use interface for interacting with MongoDB. While many essential functions are already implemented, there are still many more features that can be added to meet specific use cases. If you are interested in contributing or discussing features that you'd like to see implemented, you can join the [Bridge-mongo Discord server](https://discord.com/invite/yxjrwm7Bfr) and be a part of the community.
